@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sevilla en primera persona | Archivo audiovisual</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--ink:#182522;--muted:#66736e;--paper:#f5f4ef;--card:#fff;--green:#174d3d;--lime:#d7e6a4;--line:#e4e7df;--orange:#d97845}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:var(--green);color:white;padding:24px clamp(18px,5vw,70px) 30px;position:relative;overflow:hidden}
+header:after{content:"";position:absolute;width:340px;height:340px;border:1px solid #ffffff25;border-radius:50%;right:-80px;top:-190px;box-shadow:0 0 0 35px #ffffff0b,0 0 0 75px #ffffff08}
+.topline{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#cbdccf;font-weight:700}
+h1{font-family:Georgia,serif;font-size:clamp(34px,5vw,58px);font-weight:500;line-height:1.02;margin:18px 0 10px;max-width:700px}
+header p{color:#dce8df;max-width:620px;line-height:1.6;margin:0;font-size:15px}
+main{max-width:1440px;margin:auto;padding:26px clamp(14px,3vw,42px) 60px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.search{flex:1;min-width:210px;border:1px solid var(--line);border-radius:12px;background:white;padding:12px 14px;font:inherit;outline:none}
+.search:focus{border-color:var(--green);box-shadow:0 0 0 3px #174d3d16}
+.filter{border:1px solid var(--line);background:white;border-radius:999px;padding:10px 15px;font-weight:650;color:var(--muted);cursor:pointer}
+.filter.active{background:var(--green);border-color:var(--green);color:white}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(310px,.85fr);gap:18px;align-items:stretch}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 5px 22px #1c30200a}
+.panel-head{padding:17px 19px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:12px}
+.panel-head h2{font:500 21px Georgia,serif;margin:0}
+.small{font-size:12px;color:var(--muted)}
+#map{height:590px;width:100%;background:#e8eee7}
+.map-note{padding:11px 17px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+.zone-panel{min-height:640px;display:flex;flex-direction:column}
+.zone-content{padding:20px;display:flex;flex-direction:column;gap:17px;flex:1}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--orange);font-weight:800}
+.zone-title{font:500 30px Georgia,serif;margin:5px 0 7px}
+.zone-desc{font-size:14px;line-height:1.55;color:var(--muted);margin:0}
+.upload{border:1.5px dashed #aab9ad;border-radius:14px;padding:19px;text-align:center;background:#f8faf6}
+.upload strong{display:block;margin:7px 0 4px;font-size:14px}
+.upload p{font-size:12px;color:var(--muted);margin:0 0 12px}
+.btn{border:0;border-radius:9px;background:var(--green);color:white;padding:10px 14px;font-weight:700;cursor:pointer;font:inherit;font-size:13px}
+.btn:hover{background:#22644f}.btn.secondary{background:#edf2eb;color:var(--green)}
+.video-list{display:grid;grid-template-columns:1fr;gap:12px}
+.video-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.video-card video{width:100%;max-height:230px;background:#101513;display:block}
+.video-meta{padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.video-meta strong{font-size:13px;overflow-wrap:anywhere}
+.video-meta span{font-size:11px;color:var(--muted);white-space:nowrap}
+.delete{border:0;background:none;color:#a34b3d;cursor:pointer;font-size:12px}
+.empty{border:1px solid var(--line);border-radius:12px;padding:20px;color:var(--muted);font-size:13px;text-align:center}
+.zone-list{margin-top:20px;background:white;border:1px solid var(--line);border-radius:16px;padding:18px}
+.zone-list h3{font:500 20px Georgia,serif;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-size:12px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--green);color:var(--green)}
+footer{max-width:1440px;margin:auto;padding:0 clamp(14px,3vw,42px) 35px;color:var(--muted);font-size:12px;line-height:1.6}
+.leaflet-popup-content-wrapper{border-radius:10px}.leaflet-popup-content{font:13px system-ui}
+@media(max-width:900px){.layout{grid-template-columns:1fr}#map{height:450px}.zone-panel{min-height:400px}}
+@media(max-width:520px){header{padding-top:20px}#map{height:380px}.zone-title{font-size:26px}.panel-head{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="topline">Proyecto de memoria · territorio · periodismo ciudadano</div>
+  <h1>Sevilla en<br>primera persona</h1>
+  <p>Un archivo audiovisual colectivo para descubrir los barrios y municipios de la provincia a través de las historias de quienes los habitan.</p>
+</header>
+<main>
+  <div class="toolbar">
+    <input id="search" class="search" type="search" placeholder="Busca un barrio o municipio…">
+    <button class="filter active" data-kind="all">Todo el territorio</button>
+    <button class="filter" data-kind="barrio">Sevilla capital</button>
+    <button class="filter" data-kind="municipio">Provincia</button>
+  </div>
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-head"><h2>Explora el mapa</h2><span class="small" id="count">Zonas disponibles</span></div>
+      <div id="map" role="application" aria-label="Mapa interactivo de Sevilla"></div>
+      <div class="map-note">Selecciona un marcador o una zona de la lista para consultar y aportar vídeos. El mapa base necesita conexión a internet.</div>
+    </section>
+    <section class="panel zone-panel">
+      <div class="panel-head"><h2>Archivo de la zona</h2><span class="small" id="kind-label">Sin seleccionar</span></div>
+      <div class="zone-content">
+        <div>
+          <div class="eyebrow">Historias locales</div>
+          <h2 class="zone-title" id="zone-title">Elige una zona</h2>
+          <p class="zone-desc" id="zone-desc">Haz clic en un marcador del mapa o selecciona un barrio o municipio para abrir su espacio audiovisual.</p>
+        </div>
+        <div class="upload" id="upload-area" hidden>
+          <div style="font-size:25px">＋</div>
+          <strong>Comparte un vídeo de esta zona</strong>
+          <p>Selecciona un vídeo desde tu dispositivo. Se guardará en este navegador.</p>
+          <input type="file" id="video-input" accept="video/*" multiple hidden>
+          <button class="btn" id="choose-video">Seleccionar vídeos</button>
+        </div>
+        <div>
+          <div class="panel-head" style="padding:0 0 12px;border:0"><h2 style="font-size:19px">Vídeos publicados</h2><span class="small" id="video-count">0 vídeos</span></div>
+          <div class="video-list" id="video-list"><div class="empty">Todavía no hay vídeos en esta zona.</div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <section class="zone-list">
+    <h3>Acceso directo a las zonas</h3>
+    <div class="chips" id="zone-chips"></div>
+  </section>
+</main>
+<footer>
+  <strong>Nota sobre el almacenamiento:</strong> esta versión de demostración guarda los vídeos en IndexedDB del navegador y en el dispositivo donde se suben. No se publican automáticamente en internet ni se comparten con otros usuarios. Para un archivo público y colaborativo habrá que conectar un servidor o servicio de almacenamiento, además de moderación y normas de publicación. Las ubicaciones del mapa son marcadores orientativos, no límites oficiales de barrios.
+</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const zones = [
+ // Barrios de Sevilla capital (marcadores orientativos)
+ {name:"Triana",kind:"barrio",lat:37.3837,lon:-6.0045,desc:"Un barrio con una identidad muy marcada, junto al Guadalquivir, y una larga tradición alfarera, flamenca y vecinal."},
+ {name:"Los Remedios",kind:"barrio",lat:37.3768,lon:-6.0034,desc:"Zona residencial al oeste del centro, conocida por su vida de barrio y su cercanía al recinto ferial."},
+ {name:"Nervión",kind:"barrio",lat:37.3828,lon:-5.9658,desc:"Un área comercial y residencial del este de la ciudad, con importantes conexiones y espacios deportivos."},
+ {name:"Santa Cruz",kind:"barrio",lat:37.3858,lon:-5.9890,desc:"El entramado histórico de calles estrechas, plazas y patios del casco antiguo."},
+ {name:"Macarena",kind:"barrio",lat:37.4050,lon:-5.9894,desc:"Zona histórica y popular del norte del casco urbano, con una intensa vida vecinal."},
+ {name:"Pino Montano",kind:"barrio",lat:37.4254,lon:-5.9700,desc:"Gran zona residencial del norte de Sevilla, con asociaciones y espacios comunitarios."},
+ {name:"San Pablo",kind:"barrio",lat:37.4010,lon:-5.9560,desc:"Distrito del este de la ciudad con una amplia diversidad de espacios residenciales."},
+ {name:"Santa Justa",kind:"barrio",lat:37.3920,lon:-5.9740,desc:"Entorno de la estación ferroviaria y de barrios residenciales consolidados."},
+ {name:"Cerro-Amate",kind:"barrio",lat:37.3690,lon:-5.9450,desc:"Distrito del este y sureste, formado por barrios con una fuerte actividad asociativa."},
+ {name:"Torreblanca",kind:"barrio",lat:37.3650,lon:-5.9000,desc:"Barrio del extremo oriental de Sevilla, con una identidad comunitaria propia."},
+ {name:"Polígono Sur",kind:"barrio",lat:37.3560,lon:-5.9760,desc:"Conjunto de barriadas del sur de la ciudad, con una intensa historia social y vecinal."},
+ {name:"Bellavista",kind:"barrio",lat:37.3220,lon:-5.9700,desc:"Barrio del sur de Sevilla, con carácter residencial y conexiones con el área metropolitana."},
+ {name:"Sevilla Este",kind:"barrio",lat:37.4070,lon:-5.9200,desc:"Gran expansión residencial al este de la ciudad, con zonas comerciales y equipamientos."},
+ {name:"Alameda",kind:"barrio",lat:37.3990,lon:-5.9930,desc:"Entorno urbano céntrico con una intensa actividad cultural y de convivencia."},
+ {name:"San Jerónimo",kind:"barrio",lat:37.4190,lon:-5.9850,desc:"Barrio del norte de Sevilla, próximo al río y a espacios verdes."},
+ {name:"El Porvenir",kind:"barrio",lat:37.3720,lon:-5.9810,desc:"Zona residencial al sur del centro, próxima al parque de María Luisa."},
+ {name:"La Palmera",kind:"barrio",lat:37.3590,lon:-5.9870,desc:"Área del sur de la ciudad vinculada a grandes avenidas y equipamientos."},
+ {name:"Tiro de Línea",kind:"barrio",lat:37.3670,lon:-5.9780,desc:"Barrio tradicional del distrito Sur, con vida asociativa y comercio de proximidad."},
+ // Municipios representativos de la provincia
+ {name:"Dos Hermanas",kind:"municipio",lat:37.2829,lon:-5.9209,desc:"Uno de los municipios más poblados de la provincia, al sur de Sevilla."},
+ {name:"Alcalá de Guadaíra",kind:"municipio",lat:37.3370,lon:-5.8540,desc:"Municipio ligado al río Guadaíra, sus molinos y su patrimonio industrial."},
+ {name:"Utrera",kind:"municipio",lat:37.1825,lon:-5.7808,desc:"Localidad con una destacada tradición histórica, musical y gastronómica."},
+ {name:"Mairena del Aljarafe",kind:"municipio",lat:37.3440,lon:-6.0630,desc:"Municipio del Aljarafe integrado en el área metropolitana."},
+ {name:"Coria del Río",kind:"municipio",lat:37.2870,lon:-6.0540,desc:"Localidad ribereña situada junto al Guadalquivir."},
+ {name:"Camas",kind:"municipio",lat:37.4020,lon:-6.0330,desc:"Municipio metropolitano al oeste de la capital."},
+ {name:"La Rinconada",kind:"municipio",lat:37.4860,lon:-5.9810,desc:"Municipio del norte del área metropolitana, con varios núcleos de población."},
+ {name:"San Juan de Aznalfarache",kind:"municipio",lat:37.3580,lon:-6.0370,desc:"Municipio del Aljarafe situado junto a la capital y al río."},
+ {name:"Tomares",kind:"municipio",lat:37.3730,lon:-6.0450,desc:"Localidad del Aljarafe con áreas residenciales y zonas verdes."},
+ {name:"Bormujos",kind:"municipio",lat:37.3730,lon:-6.0720,desc:"Municipio del Aljarafe occidental, con servicios y actividad universitaria y sanitaria."},
+ {name:"Écija",kind:"municipio",lat:37.5420,lon:-5.0820,desc:"Ciudad histórica de la campiña sevillana, conocida por su patrimonio monumental."},
+ {name:"Carmona",kind:"municipio",lat:37.4710,lon:-5.6460,desc:"Ciudad histórica sobre una elevación de la campiña, con un destacado conjunto monumental."},
+ {name:"Lebrija",kind:"municipio",lat:36.9200,lon:-6.0750,desc:"Municipio del Bajo Guadalquivir con una importante tradición agrícola y cultural."},
+ {name:"Marchena",kind:"municipio",lat:37.3290,lon:-5.4160,desc:"Localidad de la campiña con un notable patrimonio histórico."},
+ {name:"Osuna",kind:"municipio",lat:37.2370,lon:-5.1030,desc:"Villa monumental del sureste provincial."},
+ {name:"Arahal",kind:"municipio",lat:37.2620,lon:-5.5460,desc:"Municipio de la campiña sevillana, con fuerte tradición agrícola."},
+ {name:"Estepa",kind:"municipio",lat:37.2920,lon:-4.8780,desc:"Localidad conocida por su patrimonio y su tradición de mantecados."},
+ {name:"Los Palacios y Villafranca",kind:"municipio",lat:37.1600,lon:-5.9240,desc:"Municipio del Bajo Guadalquivir con una importante actividad agrícola."},
+ {name:"La Puebla del Río",kind:"municipio",lat:37.2670,lon:-6.0620,desc:"Localidad cercana a las marismas y al entorno de Doñana."},
+ {name:"Gines",kind:"municipio",lat:37.3860,lon:-6.0780,desc:"Municipio del Aljarafe con un centro urbano de tradición histórica."},
+ {name:"Espartinas",kind:"municipio",lat:37.3810,lon:-6.1230,desc:"Localidad del Aljarafe occidental."},
+ {name:"Pilas",kind:"municipio",lat:37.3040,lon:-6.3010,desc:"Municipio del oeste de la provincia, próximo al entorno de Doñana."},
+ {name:"Sanlúcar la Mayor",kind:"municipio",lat:37.3860,lon:-6.2030,desc:"Localidad del Aljarafe con patrimonio histórico."},
+ {name:"Olivares",kind:"municipio",lat:37.4180,lon:-6.1560,desc:"Municipio del Aljarafe con un conjunto histórico destacado."},
+ {name:"Gelves",kind:"municipio",lat:37.3400,lon:-6.0260,desc:"Localidad junto al Guadalquivir, al sur de Sevilla."},
+ {name:"Almensilla",kind:"municipio",lat:37.3100,lon:-6.1100,desc:"Pequeño municipio del Aljarafe sur."},
+ {name:"Aznalcázar",kind:"municipio",lat:37.3040,lon:-6.2490,desc:"Municipio próximo a los espacios naturales de Doñana."},
+ {name:"Villamanrique de la Condesa",kind:"municipio",lat:37.2450,lon:-6.3060,desc:"Localidad vinculada al entorno de Doñana y a las tradiciones rocieras."},
+ {name:"El Viso del Alcor",kind:"municipio",lat:37.3910,lon:-5.7190,desc:"Municipio de Los Alcores, con tradición agrícola y comercial."},
+ {name:"Mairena del Alcor",kind:"municipio",lat:37.3730,lon:-5.7490,desc:"Localidad de Los Alcores con una feria de gran tradición."}
+];
+
+const map = L.map('map').setView([37.38,-5.65],9);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+const markers = new Map();
+let selected = null, activeKind = "all";
+const dbPromise = new Promise((resolve,reject)=>{
+ const req=indexedDB.open("SevillaPrimeraPersonaDB",1);
+ req.onupgradeneeded=()=>req.result.createObjectStore("videos",{keyPath:"id",autoIncrement:true});
+ req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+});
+function markerColor(kind){return kind==="barrio"?"#d97845":"#174d3d"}
+function addMarkers(){
+ zones.forEach((z,i)=>{
+  const marker=L.circleMarker([z.lat,z.lon],{radius:z.kind==="barrio"?7:8,color:"#fff",weight:2,fillColor:markerColor(z.kind),fillOpacity:1});
+  marker.bindTooltip(z.name,{direction:"top",offset:[0,-7]});
+  marker.on("click",()=>selectZone(i));
+  marker.addTo(map); markers.set(i,marker);
+ });
+}
+function selectZone(i){
+ selected=i; const z=zones[i];
+ document.getElementById("zone-title").textContent=z.name;
+ document.getElementById("zone-desc").textContent=z.desc;
+ document.getElementById("kind-label").textContent=z.kind==="barrio"?"Sevilla capital":"Provincia de Sevilla";
+ document.getElementById("upload-area").hidden=false;
+ markers.forEach((m,j)=>m.setStyle({radius:j===i?11:(zones[j].kind==="barrio"?7:8),weight:j===i?4:2}));
+ if(map.getZoom()<10 && z.kind==="barrio") map.setView([z.lat,z.lon],12);
+ else map.panTo([z.lat,z.lon]);
+ renderVideos();
+}
+function renderChips(){
+ const wrap=document.getElementById("zone-chips"); wrap.innerHTML="";
+ const q=document.getElementById("search").value.trim().toLocaleLowerCase("es");
+ const filtered=zones.map((z,i)=>({...z,i})).filter(z=>(activeKind==="all"||z.kind===activeKind)&&z.name.toLocaleLowerCase("es").includes(q));
+ document.getElementById("count").textContent=filtered.length+" zonas";
+ filtered.forEach(z=>{
+  const b=document.createElement("button"); b.className="chip"; b.textContent=z.name;
+  b.onclick=()=>selectZone(z.i); wrap.appendChild(b);
+ });
+}
+async function renderVideos(){
+ const list=document.getElementById("video-list"); list.innerHTML="";
+ if(selected===null){list.innerHTML='<div class="empty">Todavía no hay vídeos en esta zona.</div>';return}
+ const db=await dbPromise, tx=db.transaction("videos","readonly"), req=tx.objectStore("videos").getAll();
+ req.onsuccess=()=>{
+  const items=req.result.filter(v=>v.zone===zones[selected].name);
+  document.getElementById("video-count").textContent=items.length+" vídeos";
+  if(!items.length){list.innerHTML='<div class="empty">Todavía no hay vídeos en esta zona. ¡Puedes aportar el primero!</div>';return}
+  items.forEach(v=>{
+   const card=document.createElement("article");card.className="video-card";
+   const video=document.createElement("video");video.controls=true;video.preload="metadata";video.src=URL.createObjectURL(v.blob);
+   const meta=document.createElement("div");meta.className="video-meta";
+   const title=document.createElement("strong");title.textContent=v.name;
+   const right=document.createElement("div");const date=document.createElement("span");date.textContent=new Date(v.created).toLocaleDateString("es-ES");
+   const del=document.createElement("button");del.className="delete";del.textContent="Eliminar";del.onclick=()=>deleteVideo(v.id);
+   right.append(date,document.createTextNode(" · "),del);meta.append(title,right);card.append(video,meta);list.append(card);
+  });
+ };
+}
+async function deleteVideo(id){
+ if(!confirm("¿Quieres eliminar este vídeo de este navegador?"))return;
+ const db=await dbPromise;db.transaction("videos","readwrite").objectStore("videos").delete(id);setTimeout(renderVideos,100);
+}
+document.getElementById("choose-video").onclick=()=>document.getElementById("video-input").click();
+document.getElementById("video-input").addEventListener("change",async e=>{
+ if(selected===null)return;
+ const files=[...e.target.files].filter(f=>f.type.startsWith("video/"));
+ if(!files.length)return;
+ const db=await dbPromise;
+ for(const file of files){
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction("videos","readwrite");
+   tx.objectStore("videos").add({zone:zones[selected].name,name:file.name,blob:file,created:Date.now()});
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+  });
+ }
+ e.target.value="";renderVideos();
+});
+document.getElementById("search").addEventListener("input",renderChips);
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");activeKind=b.dataset.kind;renderChips();
+}));
+addMarkers();renderChips();
+</script>
+</body>
+</html>
